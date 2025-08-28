@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: chubank-postgres
+    environment:
+      POSTGRES_DB: chubank
+      POSTGRES_USER: chubank_user
+      POSTGRES_PASSWORD: chubank_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chubank_user -d chubank"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - chubank-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: chubank-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - chubank-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chubank-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=chubank;Username=chubank_user;Password=chubank_pass
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_healthy
+        restart: true
+    restart: unless-stopped
+    networks:
+      - chubank-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  chubank-network:
+    driver: bridge
