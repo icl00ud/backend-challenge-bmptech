@@ -143,6 +143,35 @@
       "settingFollowRedirects": "global"
     },
     {
+      "_id": "req_get_all_accounts",
+      "_type": "request",
+      "parentId": "req_group_chubank_api",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/accounts",
+      "name": "📋 Get All Accounts",
+      "description": "Busca todas as contas",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.auth_token }}",
+          "id": "pair_auth"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1704066950000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
       "_id": "req_create_transfer",
       "_type": "request",
       "parentId": "req_group_chubank_api",

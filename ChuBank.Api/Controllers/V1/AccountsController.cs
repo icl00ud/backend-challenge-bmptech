@@ -60,4 +60,23 @@ public class AccountsController : ControllerBase
 
         return Ok(account);
     }
+
+    /// <summary>
+    /// Obter todas as contas
+    /// </summary>
+    /// <returns>Lista de todas as contas</returns>
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> GetAllAccounts()
+    {
+        try
+        {
+            var accounts = await _accountService.GetAllAccountsAsync();
+            return Ok(accounts);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

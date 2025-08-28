@@ -59,6 +59,21 @@ public class AccountService
         };
     }
 
+    public async Task<IEnumerable<AccountResponse>> GetAllAccountsAsync()
+    {
+        var accounts = await _accountRepository.GetAllAsync();
+        
+        return accounts.Select(account => new AccountResponse
+        {
+            Id = account.Id,
+            AccountNumber = account.AccountNumber,
+            HolderName = account.HolderName,
+            Balance = account.Balance,
+            CreatedAt = account.CreatedAt,
+            IsActive = account.IsActive
+        });
+    }
+
     private async Task<string> GenerateUniqueAccountNumberAsync()
     {
         string accountNumber;
