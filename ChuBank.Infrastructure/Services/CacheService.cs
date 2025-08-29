@@ -32,7 +32,7 @@ public class CacheService : ICacheService
         if (expiry.HasValue)
             options.SetAbsoluteExpiration(expiry.Value);
         else
-            options.SetAbsoluteExpiration(TimeSpan.FromMinutes(30)); // Default 30 minutes
+            options.SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
 
         await _distributedCache.SetStringAsync(key, serializedValue, options);
     }
