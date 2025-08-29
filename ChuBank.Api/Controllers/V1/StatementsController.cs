@@ -17,13 +17,6 @@ public class StatementsController : ControllerBase
         _statementService = statementService;
     }
 
-    /// <summary>
-    /// Generate statement for an account by period
-    /// </summary>
-    /// <param name="accountId">Account ID</param>
-    /// <param name="startDate">Period start date</param>
-    /// <param name="endDate">Period end date</param>
-    /// <returns>Account statement in the specified period</returns>
     [HttpGet]
     public async Task<IActionResult> GetStatement(
         [FromQuery] Guid accountId,

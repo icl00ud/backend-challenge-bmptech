@@ -15,48 +15,38 @@ using ChuBank.Application.DTOs.Requests;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 
-// Database configuration
 builder.Services.AddDbContext<ChuBankDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? 
                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
 
-// Redis configuration
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
 
-// Repository registration
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ITransferRepository, TransferRepository>();
 builder.Services.AddScoped<IStatementRepository, StatementRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
-// Service registration
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IHolidayService, HolidayService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ILogService, LogService>();
 
-// Background services
 builder.Services.AddHostedService<HolidayCacheWarmupService>();
 
-// Application services
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<TransferService>();
 builder.Services.AddScoped<StatementService>();
 
-// HttpClient for BrasilAPI
 builder.Services.AddHttpClient<IHolidayService, HolidayService>();
 
-// FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountRequestValidator>();
 
-// API Versioning
 builder.Services.AddApiVersioning(opt =>
 {
     opt.DefaultApiVersion = new ApiVersion(1, 0);
@@ -69,7 +59,6 @@ builder.Services.AddVersionedApiExplorer(setup =>
     setup.SubstituteApiVersionInUrl = true;
 });
 
-// JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -86,7 +75,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -97,7 +85,6 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API for bank management - BMP Tech Challenge"
     });
 
-    // JWT Authentication in Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -122,7 +109,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Include XML comments
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
@@ -133,14 +119,12 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Seed database
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ChuBankDbContext>();
     await DbInitializer.SeedAsync(context);
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -157,7 +141,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Database migration on startup
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ChuBankDbContext>();

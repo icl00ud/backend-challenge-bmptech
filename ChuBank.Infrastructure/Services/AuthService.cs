@@ -40,29 +40,23 @@ public class AuthService : IAuthService
     {
         _logService.LogSecurity($"Login attempt for user: {username} from IP: {ipAddress}");
         
-        // Check IP rate limiting
         if (await IsIpRateLimitedAsync(ipAddress))
         {
             _logService.LogSecurity($"Login attempt blocked - IP rate limited: {ipAddress}");
             return (null, null);
         }
 
-        // Try to get user from cache first
         var cacheKey = $"user_{username}";
         var cachedUserDto = await _cacheService.GetAsync<UserCacheDto>(cacheKey);
         User? user = null;
         
         if (cachedUserDto != null)
         {
-            // Convert cached DTO back to User entity
             user = cachedUserDto.ToUser();
-            // For cached users, we need to get a fresh instance from DB for role information and tracking
             var freshUser = await _userRepository.GetByUsernameAsync(username);
             if (freshUser != null)
             {
-                // Copy role information to our cached user
                 user.UserRoles = freshUser.UserRoles;
-                // Use the fresh user for any updates to avoid tracking conflicts
                 user = freshUser;
             }
             _logService.LogInfo($"User retrieved from cache: {username}");
@@ -72,7 +66,6 @@ public class AuthService : IAuthService
             user = await _userRepository.GetByUsernameAsync(username);
             if (user != null)
             {
-                // Cache user for 15 minutes
                 await _cacheService.SetAsync(cacheKey, user.ToCacheDto(), TimeSpan.FromMinutes(15));
                 _logService.LogInfo($"User retrieved from database and cached: {username}");
             }
@@ -106,7 +99,6 @@ public class AuthService : IAuthService
             
             await _userRepository.UpdateAsync(user);
             
-            // Update cache with modified user data
             await _cacheService.SetAsync(cacheKey, user.ToCacheDto(), TimeSpan.FromMinutes(15));
             
             await LogLoginAttemptAsync(user.Id, ipAddress, userAgent, false, "Invalid password");
@@ -115,7 +107,6 @@ public class AuthService : IAuthService
             return (null, null);
         }
 
-        // Reset failed attempts on successful login
         user.FailedLoginAttempts = 0;
         user.LastLoginAt = DateTime.UtcNow;
         user.IsLocked = false;
@@ -124,7 +115,6 @@ public class AuthService : IAuthService
         await _userRepository.UpdateAsync(user);
         await LogLoginAttemptAsync(user.Id, ipAddress, userAgent, true);
 
-        // Update user cache with fresh data
         await _cacheService.SetAsync(cacheKey, user.ToCacheDto(), TimeSpan.FromMinutes(15));
         _logService.LogInfo($"Updated user cache after successful login: {username}");
 
@@ -197,7 +187,6 @@ public class AuthService : IAuthService
             user.FailedLoginAttempts = 0;
             await _userRepository.UpdateAsync(user);
             
-            // Update cache with auto-unlocked user data
             var cacheKey = $"user_{user.Username}";
             await _cacheService.SetAsync(cacheKey, user.ToCacheDto(), TimeSpan.FromMinutes(15));
             

@@ -25,7 +25,6 @@ public class AccountServiceTests
     [Fact]
     public async Task CreateAccountAsync_ShouldCreateAccount_WhenValidRequest()
     {
-        // Arrange
         var request = new CreateAccountRequest
         {
             HolderName = "João Silva",
@@ -50,10 +49,8 @@ public class AccountServiceTests
             .Setup(x => x.CreateAsync(It.IsAny<Account>()))
             .ReturnsAsync(expectedAccount);
 
-        // Act
         var result = await _accountService.CreateAccountAsync(request);
 
-        // Assert
         result.Should().NotBeNull();
         result.HolderName.Should().Be(request.HolderName);
         result.Balance.Should().Be(request.InitialBalance);
@@ -64,7 +61,6 @@ public class AccountServiceTests
     [Fact]
     public async Task GetAccountByIdAsync_ShouldReturnAccount_WhenAccountExists()
     {
-        // Arrange
         var accountId = Guid.NewGuid();
         var account = new Account
         {
@@ -80,10 +76,8 @@ public class AccountServiceTests
             .Setup(x => x.GetByIdAsync(accountId))
             .ReturnsAsync(account);
 
-        // Act
         var result = await _accountService.GetAccountByIdAsync(accountId);
 
-        // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(accountId);
         result.HolderName.Should().Be(account.HolderName);
@@ -93,17 +87,14 @@ public class AccountServiceTests
     [Fact]
     public async Task GetAccountByIdAsync_ShouldReturnNull_WhenAccountDoesNotExist()
     {
-        // Arrange
         var accountId = Guid.NewGuid();
 
         _mockAccountRepository
             .Setup(x => x.GetByIdAsync(accountId))
             .ReturnsAsync((Account?)null);
 
-        // Act
         var result = await _accountService.GetAccountByIdAsync(accountId);
 
-        // Assert
         result.Should().BeNull();
     }
 }
