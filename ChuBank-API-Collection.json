@@ -17,6 +17,66 @@
       "metaSortKey": -1704067200000
     },
     {
+      "_id": "req_group_auth",
+      "_type": "request_group",
+      "parentId": "req_group_chubank_api",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Authentication",
+      "description": "Endpoints de autenticação e autorização",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1704067190000
+    },
+    {
+      "_id": "req_group_users",
+      "_type": "request_group",
+      "parentId": "req_group_chubank_api",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Users",
+      "description": "Gerenciamento de usuários",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1704067180000
+    },
+    {
+      "_id": "req_group_accounts",
+      "_type": "request_group",
+      "parentId": "req_group_chubank_api",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Accounts",
+      "description": "Gerenciamento de contas bancárias",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1704067170000
+    },
+    {
+      "_id": "req_group_transfers",
+      "_type": "request_group",
+      "parentId": "req_group_chubank_api",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Transfers",
+      "description": "Transferências entre contas",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1704067160000
+    },
+    {
+      "_id": "req_group_statements",
+      "_type": "request_group",
+      "parentId": "req_group_chubank_api",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "name": "Statements",
+      "description": "Extratos e relatórios",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1704067150000
+    },
+    {
       "_id": "wrk_chubank",
       "_type": "workspace",
       "parentId": null,
@@ -47,16 +107,16 @@
     {
       "_id": "req_auth_token",
       "_type": "request",
-      "parentId": "req_group_chubank_api",
+      "parentId": "req_group_auth",
       "modified": 1704067200000,
       "created": 1704067200000,
-      "url": "{{ _.base_url }}/auth/token",
-      "name": "Generate JWT Token",
-      "description": "Gera token JWT para autenticação da API",
+      "url": "{{ _.base_url }}/auth/login",
+      "name": "Login",
+      "description": "Realiza login e obtém token JWT",
       "method": "POST",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"username\": \"admin\",\n  \"password\": \"password\"\n}"
+        "text": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin@123456\"\n}"
       },
       "parameters": [],
       "headers": [
@@ -74,21 +134,51 @@
       "settingDisableRenderRequestBody": false,
       "settingEncodeUrl": true,
       "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "afterResponseScript": "const responseBody = insomnia.response.json();\nif (responseBody && responseBody.token) {\n  insomnia.environment.set('auth_token', responseBody.token);\n}"
+    },
+    {
+      "_id": "req_current_user",
+      "_type": "request",
+      "parentId": "req_group_auth",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/auth/me",
+      "name": "Get Current User",
+      "description": "Obtém dados do usuário autenticado",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.auth_token }}",
+          "id": "pair_auth"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1704067150000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
       "settingFollowRedirects": "global"
     },
     {
-      "_id": "req_create_account",
+      "_id": "req_register_user",
       "_type": "request",
-      "parentId": "req_group_chubank_api",
+      "parentId": "req_group_users",
       "modified": 1704067200000,
       "created": 1704067200000,
-      "url": "{{ _.base_url }}/accounts",
-      "name": "Create Account",
-      "description": "Cria uma nova conta bancária",
+      "url": "{{ _.base_url }}/auth/register",
+      "name": "Register User",
+      "description": "Cria um novo usuário (apenas admins)",
       "method": "POST",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"holderName\": \"João Silva\",\n  \"initialBalance\": 1000.00\n}"
+        "text": "{\n  \"username\": \"user01\",\n  \"email\": \"user01@chubank.com\",\n  \"password\": \"User@123456\",\n  \"confirmPassword\": \"User@123456\",\n  \"firstName\": \"João\",\n  \"lastName\": \"Silva\",\n  \"roles\": [\"Customer\"]\n}"
       },
       "parameters": [],
       "headers": [
@@ -114,13 +204,50 @@
       "settingFollowRedirects": "global"
     },
     {
-      "_id": "req_get_account",
+      "_id": "req_create_account",
       "_type": "request",
-      "parentId": "req_group_chubank_api",
+      "parentId": "req_group_accounts",
       "modified": 1704067200000,
       "created": 1704067200000,
-      "url": "{{ _.base_url }}/accounts/00000000-0000-0000-0000-000000000000",
-      "name": "Get Account",
+      "url": "{{ _.base_url }}/accounts",
+      "name": "Create Account",
+      "description": "Cria uma nova conta bancária",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"holderName\": \"João Silva\",\n  \"initialBalance\": 1000.00\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json",
+          "id": "pair_content_type"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.auth_token }}",
+          "id": "pair_auth"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1704067200000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_get_account",
+      "_type": "request",
+      "parentId": "req_group_accounts",
+      "modified": 1704067200000,
+      "created": 1704067200000,
+      "url": "{{ _.base_url }}/accounts/6bef5bd9-393e-41a9-8d6b-2cc2f68f028c",
+      "name": "Get Account by ID",
       "description": "Busca uma conta pelo ID",
       "method": "GET",
       "body": {},
@@ -133,7 +260,7 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -1704067000000,
+      "metaSortKey": -1704067150000,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,
@@ -145,7 +272,7 @@
     {
       "_id": "req_get_all_accounts",
       "_type": "request",
-      "parentId": "req_group_chubank_api",
+      "parentId": "req_group_accounts",
       "modified": 1704067200000,
       "created": 1704067200000,
       "url": "{{ _.base_url }}/accounts",
@@ -162,7 +289,7 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -1704066950000,
+      "metaSortKey": -1704067100000,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,
@@ -174,7 +301,7 @@
     {
       "_id": "req_create_transfer",
       "_type": "request",
-      "parentId": "req_group_chubank_api",
+      "parentId": "req_group_transfers",
       "modified": 1704067200000,
       "created": 1704067200000,
       "url": "{{ _.base_url }}/transfers",
@@ -183,7 +310,7 @@
       "method": "POST",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"fromAccountId\": \"00000000-0000-0000-0000-000000000000\",\n  \"toAccountId\": \"11111111-1111-1111-1111-111111111111\",\n  \"amount\": 100.00,\n  \"description\": \"Transferência de teste\"\n}"
+        "text": "{\n  \"fromAccountNumber\": \"482697\",\n  \"toAccountNumber\": \"548255\",\n  \"amount\": 100.00,\n  \"description\": \"Transferência de teste\"\n}"
       },
       "parameters": [],
       "headers": [
@@ -199,7 +326,7 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -1704066900000,
+      "metaSortKey": -1704067200000,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,
@@ -211,7 +338,7 @@
     {
       "_id": "req_get_statement",
       "_type": "request",
-      "parentId": "req_group_chubank_api",
+      "parentId": "req_group_statements",
       "modified": 1704067200000,
       "created": 1704067200000,
       "url": "{{ _.base_url }}/statements",
@@ -222,19 +349,19 @@
       "parameters": [
         {
           "name": "accountId",
-          "value": "00000000-0000-0000-0000-000000000000",
+          "value": "6bef5bd9-393e-41a9-8d6b-2cc2f68f028c",
           "description": "ID da conta",
           "id": "pair_account_id"
         },
         {
           "name": "startDate",
-          "value": "2024-01-01",
+          "value": "2025-08-01",
           "description": "Data de início do período (YYYY-MM-DD)",
           "id": "pair_start_date"
         },
         {
           "name": "endDate",
-          "value": "2024-01-31",
+          "value": "2025-08-31",
           "description": "Data de fim do período (YYYY-MM-DD)",
           "id": "pair_end_date"
         }
@@ -247,7 +374,7 @@
         }
       ],
       "authentication": {},
-      "metaSortKey": -1704066800000,
+      "metaSortKey": -1704067200000,
       "isPrivate": false,
       "settingStoreCookies": true,
       "settingSendCookies": true,
