@@ -33,10 +33,19 @@ builder.Services.AddStackExchangeRedisCache(options =>
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ITransferRepository, TransferRepository>();
 builder.Services.AddScoped<IStatementRepository, StatementRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 // Service registration
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IHolidayService, HolidayService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<ILogService, LogService>();
+
+// Background services
+builder.Services.AddHostedService<HolidayCacheWarmupService>();
+
+// Application services
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<TransferService>();
 builder.Services.AddScoped<StatementService>();
@@ -85,7 +94,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "ChuBank API",
         Version = "v1",
-        Description = "API para gerenciamento bancário - Challenge BMP Tech"
+        Description = "API for bank management - BMP Tech Challenge"
     });
 
     // JWT Authentication in Swagger
@@ -124,6 +133,13 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Seed database
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ChuBankDbContext>();
+    await DbInitializer.SeedAsync(context);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -145,7 +161,7 @@ app.MapControllers();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ChuBankDbContext>();
-    context.Database.EnsureCreated(); // For development - use migrations in production
+    context.Database.Migrate();
 }
 
 app.Run();
