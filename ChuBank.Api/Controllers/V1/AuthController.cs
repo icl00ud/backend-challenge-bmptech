@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using ChuBank.Domain.Interfaces;
+using ChuBank.Application.DTOs.Requests;
+using ChuBank.Application.DTOs.Responses;
 
 namespace ChuBank.Api.Controllers.V1;
 
@@ -11,56 +11,143 @@ namespace ChuBank.Api.Controllers.V1;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
+    private readonly IAuthService _authService;
+    private readonly ILogService _logService;
 
-    public AuthController(IConfiguration configuration)
+    public AuthController(IAuthService authService, ILogService logService)
     {
-        _configuration = configuration;
+        _authService = authService;
+        _logService = logService;
     }
 
     /// <summary>
-    /// Gerar token JWT (para demonstração)
+    /// Perform login and obtain JWT token
     /// </summary>
-    /// <param name="request">Credenciais do usuário</param>
-    /// <returns>Token JWT</returns>
-    [HttpPost("token")]
-    public IActionResult GenerateToken([FromBody] LoginRequest request)
+    /// <param name="request">User credentials</param>
+    /// <returns>JWT token and user data</returns>
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        // Validação simplificada (em produção, validar contra banco de dados)
-        if (request.Username == "admin" && request.Password == "password")
+        if (!ModelState.IsValid)
         {
-            var token = GenerateJwtToken(request.Username);
-            return Ok(new { token });
+            return BadRequest(ModelState);
         }
 
-        return Unauthorized(new { message = "Credenciais inválidas" });
-    }
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
-    private string GenerateJwtToken(string username)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var (user, token) = await _authService.AuthenticateAsync(
+            request.Username, 
+            request.Password, 
+            ipAddress, 
+            userAgent);
 
-        var claims = new[]
+        if (user == null || token == null)
         {
-            new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+            return Unauthorized(new { message = "Invalid credentials or account locked" });
+        }
+
+        var response = new AuthResponse
+        {
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddHours(8),
+            User = new UserResponse
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                FullName = user.FullName,
+                Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList(),
+                LastLoginAt = user.LastLoginAt,
+                CreatedAt = user.CreatedAt
+            }
         };
 
-        var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddHours(1),
-            signingCredentials: credentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return Ok(response);
     }
-}
 
-public class LoginRequest
-{
-    public string Username { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
+    /// <summary>
+    /// Create a new user
+    /// </summary>
+    /// <param name="request">User data</param>
+    /// <returns>Created user data</returns>
+    [HttpPost("register")]
+    [Authorize(Roles = "Admin,Manager")] // Only admins can create users
+    public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var user = await _authService.CreateUserAsync(
+                request.Username,
+                request.Email,
+                request.Password,
+                request.FirstName,
+                request.LastName,
+                request.Roles);
+
+            _logService.LogInfo($"User registration successful: {request.Username}");
+
+            var response = new UserResponse
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                FullName = user.FullName,
+                Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList(),
+                CreatedAt = user.CreatedAt
+            };
+
+            return Created($"api/v1/auth/{user.Id}", response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logService.LogWarning($"User registration failed: {request.Username} - {ex.Message}");
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get current user data
+    /// </summary>
+    /// <returns>Authenticated user data</returns>
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+        {
+            return Unauthorized();
+        }
+
+        var user = await _authService.GetUserByIdAsync(userGuid);
+        if (user == null)
+        {
+            return NotFound(new { message = "User not found" });
+        }
+
+        var response = new UserResponse
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            FullName = user.FullName,
+            Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList(),
+            LastLoginAt = user.LastLoginAt,
+            CreatedAt = user.CreatedAt
+        };
+
+        return Ok(response);
+    }
 }
