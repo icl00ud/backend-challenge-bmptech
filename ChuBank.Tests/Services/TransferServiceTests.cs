@@ -31,7 +31,6 @@ public class TransferServiceTests
     [Fact]
     public async Task CreateTransferAsync_ShouldCreateTransfer_WhenValidRequest()
     {
-        // Arrange
         var request = new CreateTransferRequest
         {
             FromAccountNumber = "123456",
@@ -89,10 +88,8 @@ public class TransferServiceTests
             .Setup(x => x.CreateAsync(It.IsAny<Transfer>()))
             .ReturnsAsync(expectedTransfer);
 
-        // Act
         var result = await _transferService.CreateTransferAsync(request);
 
-        // Assert
         result.Should().NotBeNull();
         result.Amount.Should().Be(request.Amount);
         result.FromAccountNumber.Should().Be(request.FromAccountNumber);
@@ -106,7 +103,6 @@ public class TransferServiceTests
     [Fact]
     public async Task CreateTransferAsync_ShouldThrowException_WhenNotBusinessDay()
     {
-        // Arrange
         var request = new CreateTransferRequest
         {
             FromAccountNumber = "123456",
@@ -118,7 +114,6 @@ public class TransferServiceTests
             .Setup(x => x.IsBusinessDayAsync(It.IsAny<DateTime>()))
             .ReturnsAsync(false);
 
-        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _transferService.CreateTransferAsync(request));
     }
@@ -126,7 +121,6 @@ public class TransferServiceTests
     [Fact]
     public async Task CreateTransferAsync_ShouldThrowException_WhenInsufficientBalance()
     {
-        // Arrange
         var request = new CreateTransferRequest
         {
             FromAccountNumber = "123456",
@@ -162,7 +156,6 @@ public class TransferServiceTests
             .Setup(x => x.GetByAccountNumberAsync("654321"))
             .ReturnsAsync(toAccount);
 
-        // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _transferService.CreateTransferAsync(request));
     }

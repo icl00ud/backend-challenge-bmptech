@@ -9,7 +9,6 @@ public static class DbInitializer
     {
         var now = DateTime.UtcNow;
 
-        // Seed Roles
         try
         {
             if (!await context.Roles.AnyAsync())
@@ -26,7 +25,6 @@ public static class DbInitializer
                 await context.SaveChangesAsync();
             }
 
-            // Seed Admin User
             if (!await context.Users.AnyAsync())
             {
                 var adminRole = await context.Roles.FirstAsync(r => r.Name == "Admin");
@@ -47,7 +45,6 @@ public static class DbInitializer
                 await context.Users.AddAsync(adminUser);
                 await context.SaveChangesAsync();
 
-                // Assign Admin role
                 var userRole = new UserRole
                 {
                     UserId = adminUser.Id,

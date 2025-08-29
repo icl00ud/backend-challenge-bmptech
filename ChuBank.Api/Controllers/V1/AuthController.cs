@@ -20,11 +20,6 @@ public class AuthController : ControllerBase
         _logService = logService;
     }
 
-    /// <summary>
-    /// Perform login and obtain JWT token
-    /// </summary>
-    /// <param name="request">User credentials</param>
-    /// <returns>JWT token and user data</returns>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
@@ -68,13 +63,8 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
-    /// <summary>
-    /// Create a new user
-    /// </summary>
-    /// <param name="request">User data</param>
-    /// <returns>Created user data</returns>
     [HttpPost("register")]
-    [Authorize(Roles = "Admin,Manager")] // Only admins can create users
+    [Authorize(Roles = "Admin,Manager")]
     public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
     {
         if (!ModelState.IsValid)
@@ -115,10 +105,6 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get current user data
-    /// </summary>
-    /// <returns>Authenticated user data</returns>
     [HttpGet("me")]
     [Authorize]
     public async Task<IActionResult> GetCurrentUser()

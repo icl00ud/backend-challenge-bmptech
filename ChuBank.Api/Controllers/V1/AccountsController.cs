@@ -20,11 +20,6 @@ public class AccountsController : ControllerBase
         _validator = validator;
     }
 
-    /// <summary>
-    /// Register a new account
-    /// </summary>
-    /// <param name="request">Account data to be created</param>
-    /// <returns>Created account data</returns>
     [HttpPost]
     [AllowAnonymous]
     public async Task<IActionResult> CreateAccount([FromBody] CreateAccountRequest request)
@@ -44,11 +39,6 @@ public class AccountsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get account data by ID
-    /// </summary>
-    /// <param name="id">Account ID</param>
-    /// <returns>Account data</returns>
     [HttpGet("{id}")]
     [Authorize]
     public async Task<IActionResult> GetAccount(Guid id)
@@ -61,10 +51,6 @@ public class AccountsController : ControllerBase
         return Ok(account);
     }
 
-    /// <summary>
-    /// Get all accounts
-    /// </summary>
-    /// <returns>List of all accounts</returns>
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetAllAccounts()

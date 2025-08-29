@@ -21,11 +21,6 @@ public class TransfersController : ControllerBase
         _validator = validator;
     }
 
-    /// <summary>
-    /// Make a transfer between accounts
-    /// </summary>
-    /// <param name="request">Transfer data</param>
-    /// <returns>Data of the transfer performed</returns>
     [HttpPost]
     public async Task<IActionResult> CreateTransfer([FromBody] CreateTransferRequest request)
     {
