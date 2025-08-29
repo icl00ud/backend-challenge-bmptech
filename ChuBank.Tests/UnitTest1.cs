@@ -1,24 +1,25 @@
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using FluentAssertions;
 using ChuBank.Application.Services;
 using ChuBank.Application.DTOs.Requests;
 using ChuBank.Domain.Entities;
 using ChuBank.Domain.Interfaces;
-using ChuBank.Infrastructure.Data;
-using ChuBank.Infrastructure.Repositories;
 
 namespace ChuBank.Tests.Services;
 
 public class AccountServiceTests
 {
     private readonly Mock<IAccountRepository> _mockAccountRepository;
+    private readonly Mock<ILogService> _mockLogService;
+    private readonly Mock<ICacheService> _mockCacheService;
     private readonly AccountService _accountService;
 
     public AccountServiceTests()
     {
         _mockAccountRepository = new Mock<IAccountRepository>();
-        _accountService = new AccountService(_mockAccountRepository.Object);
+        _mockLogService = new Mock<ILogService>();
+        _mockCacheService = new Mock<ICacheService>();
+        _accountService = new AccountService(_mockAccountRepository.Object, _mockLogService.Object, _mockCacheService.Object);
     }
 
     [Fact]

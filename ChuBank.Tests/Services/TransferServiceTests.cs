@@ -12,6 +12,7 @@ public class TransferServiceTests
     private readonly Mock<ITransferRepository> _mockTransferRepository;
     private readonly Mock<IAccountRepository> _mockAccountRepository;
     private readonly Mock<IHolidayService> _mockHolidayService;
+    private readonly Mock<ILogService> _mockLogService;
     private readonly TransferService _transferService;
 
     public TransferServiceTests()
@@ -19,10 +20,12 @@ public class TransferServiceTests
         _mockTransferRepository = new Mock<ITransferRepository>();
         _mockAccountRepository = new Mock<IAccountRepository>();
         _mockHolidayService = new Mock<IHolidayService>();
+        _mockLogService = new Mock<ILogService>();
         _transferService = new TransferService(
             _mockTransferRepository.Object,
             _mockAccountRepository.Object,
-            _mockHolidayService.Object);
+            _mockHolidayService.Object,
+            _mockLogService.Object);
     }
 
     [Fact]
@@ -128,14 +131,14 @@ public class TransferServiceTests
         {
             FromAccountNumber = "123456",
             ToAccountNumber = "654321",
-            Amount = 1500.00m // More than available balance
+            Amount = 1500.00m
         };
 
         var fromAccount = new Account
         {
             Id = Guid.NewGuid(),
             AccountNumber = "123456",
-            Balance = 1000.00m, // Less than requested amount
+            Balance = 1000.00m,
             IsActive = true
         };
 
