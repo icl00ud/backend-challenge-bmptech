@@ -13,10 +13,10 @@ public class CreateAccountRequestValidator : AbstractValidator<CreateAccountRequ
     public CreateAccountRequestValidator()
     {
         RuleFor(x => x.HolderName)
-            .NotEmpty().WithMessage("Nome do titular é obrigatório")
-            .Length(2, 200).WithMessage("Nome deve ter entre 2 e 200 caracteres");
+            .NotEmpty().WithMessage("Holder name is required")
+            .Length(2, 200).WithMessage("Name must be between 2 and 200 characters");
 
         RuleFor(x => x.InitialBalance)
-            .GreaterThanOrEqualTo(0).WithMessage("Saldo inicial deve ser maior ou igual a zero");
+            .GreaterThanOrEqualTo(0).WithMessage("Initial balance must be greater than or equal to zero");
     }
 }

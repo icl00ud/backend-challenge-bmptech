@@ -10,47 +10,59 @@ public class TransferService
     private readonly ITransferRepository _transferRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly IHolidayService _holidayService;
+    private readonly ILogService _logService;
 
     public TransferService(
         ITransferRepository transferRepository,
         IAccountRepository accountRepository,
-        IHolidayService holidayService)
+        IHolidayService holidayService,
+        ILogService logService)
     {
         _transferRepository = transferRepository;
         _accountRepository = accountRepository;
         _holidayService = holidayService;
+        _logService = logService;
     }
 
     public async Task<TransferResponse> CreateTransferAsync(CreateTransferRequest request)
     {
-        // Validate business day
-        var transferDate = DateTime.Today;
+        _logService.LogInfo($"Transfer request: {request.Amount:C} from {request.FromAccountNumber} to {request.ToAccountNumber}");
+        
+        var transferDate = DateTime.UtcNow.Date;
         if (!await _holidayService.IsBusinessDayAsync(transferDate))
         {
-            throw new InvalidOperationException("Transferências só podem ser realizadas em dias úteis");
+            _logService.LogWarning($"Transfer rejected - not a business day: {transferDate:yyyy-MM-dd}");
+            throw new InvalidOperationException("Transfers can only be made on business days");
         }
 
-        // Get accounts
         var fromAccount = await _accountRepository.GetByAccountNumberAsync(request.FromAccountNumber);
         if (fromAccount == null)
-            throw new InvalidOperationException("Conta de origem não encontrada");
+        {
+            _logService.LogWarning($"Transfer failed - source account not found: {request.FromAccountNumber}");
+            throw new InvalidOperationException("Source account not found");
+        }
 
         var toAccount = await _accountRepository.GetByAccountNumberAsync(request.ToAccountNumber);
         if (toAccount == null)
-            throw new InvalidOperationException("Conta de destino não encontrada");
+        {
+            _logService.LogWarning($"Transfer failed - destination account not found: {request.ToAccountNumber}");
+            throw new InvalidOperationException("Destination account not found");
+        }
 
-        // Validate balance
         if (fromAccount.Balance < request.Amount)
-            throw new InvalidOperationException("Saldo insuficiente");
+        {
+            _logService.LogWarning($"Transfer failed - insufficient balance: {fromAccount.AccountNumber} has {fromAccount.Balance:C}, requested {request.Amount:C}");
+            throw new InvalidOperationException("Insufficient funds");
+        }
 
-        // Update balances
         fromAccount.Balance -= request.Amount;
         toAccount.Balance += request.Amount;
 
         await _accountRepository.UpdateAsync(fromAccount);
         await _accountRepository.UpdateAsync(toAccount);
 
-        // Create transfer record
+        _logService.LogInfo($"Updated balances for accounts: {fromAccount.AccountNumber} and {toAccount.AccountNumber}");
+
         var transfer = new Transfer
         {
             Id = Guid.NewGuid(),
@@ -63,6 +75,7 @@ public class TransferService
         };
 
         var createdTransfer = await _transferRepository.CreateAsync(transfer);
+        _logService.LogInfo($"Transfer completed successfully: {request.Amount:C} from {request.FromAccountNumber} to {request.ToAccountNumber} - ID: {createdTransfer.Id}");
 
         return new TransferResponse
         {

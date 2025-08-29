@@ -15,16 +15,16 @@ public class CreateTransferRequestValidator : AbstractValidator<CreateTransferRe
     public CreateTransferRequestValidator()
     {
         RuleFor(x => x.FromAccountNumber)
-            .NotEmpty().WithMessage("Conta de origem é obrigatória");
+            .NotEmpty().WithMessage("From Account Number is required");
 
         RuleFor(x => x.ToAccountNumber)
-            .NotEmpty().WithMessage("Conta de destino é obrigatória")
-            .NotEqual(x => x.FromAccountNumber).WithMessage("Conta de destino deve ser diferente da conta de origem");
+            .NotEmpty().WithMessage("To Account Number is required")
+            .NotEqual(x => x.FromAccountNumber).WithMessage("To Account Number must be different from From Account Number");
 
         RuleFor(x => x.Amount)
-            .GreaterThan(0).WithMessage("Valor deve ser maior que zero");
+            .GreaterThan(0).WithMessage("Amount must be greater than zero");
 
         RuleFor(x => x.Description)
-            .MaximumLength(500).WithMessage("Descrição deve ter no máximo 500 caracteres");
+            .MaximumLength(500).WithMessage("Description must have a maximum of 500 characters");
     }
 }

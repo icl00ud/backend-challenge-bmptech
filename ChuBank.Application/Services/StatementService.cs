@@ -25,22 +25,21 @@ public class StatementService
 
     public async Task<StatementResponse> GenerateStatementAsync(Guid accountId, DateTime startDate, DateTime endDate)
     {
+        startDate = DateTime.SpecifyKind(startDate.Date, DateTimeKind.Utc);
+        endDate = DateTime.SpecifyKind(endDate.Date, DateTimeKind.Utc);
+        
         var cacheKey = $"statement_{accountId}_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}";
         
-        // Try to get from cache first
         var cachedStatement = await _cacheService.GetAsync<StatementResponse>(cacheKey);
         if (cachedStatement != null)
             return cachedStatement;
 
-        // Get account
         var account = await _accountRepository.GetByIdAsync(accountId);
         if (account == null)
-            throw new InvalidOperationException("Conta não encontrada");
+            throw new InvalidOperationException("Account not found");
 
-        // Get transfers in period
         var transfers = await _transferRepository.GetByAccountIdAsync(accountId, startDate, endDate);
 
-        // Calculate opening balance (balance before start date)
         var openingBalance = await CalculateOpeningBalanceAsync(accountId, startDate);
 
         var entries = new List<StatementEntryResponse>();
@@ -55,7 +54,7 @@ public class StatementService
             entries.Add(new StatementEntryResponse
             {
                 Date = transfer.TransferDate,
-                Description = transfer.Description ?? (isDebit ? $"Transferência para {transfer.ToAccount.AccountNumber}" : $"Transferência de {transfer.FromAccount.AccountNumber}"),
+                Description = transfer.Description ?? (isDebit ? $"Transfer to {transfer.ToAccount.AccountNumber}" : $"Transfer from {transfer.FromAccount.AccountNumber}"),
                 Amount = amount,
                 Balance = runningBalance,
                 Type = isDebit ? "DEBIT" : "CREDIT"
@@ -74,18 +73,16 @@ public class StatementService
             Entries = entries
         };
 
-        // Cache for 1 hour
-        await _cacheService.SetAsync(cacheKey, statement, TimeSpan.FromHours(1));
+        await _cacheService.SetAsync(cacheKey, statement, TimeSpan.FromMinutes(30));
 
         return statement;
     }
 
     private async Task<decimal> CalculateOpeningBalanceAsync(Guid accountId, DateTime startDate)
     {
-        var transfers = await _transferRepository.GetByAccountIdAsync(accountId, null, startDate.AddDays(-1));
-        
-        // This is a simplified calculation. In a real scenario, you'd have the initial account balance
-        // and calculate from there, or store historical balances
+        var endDate = DateTime.SpecifyKind(startDate.AddDays(-1), DateTimeKind.Utc);
+        var transfers = await _transferRepository.GetByAccountIdAsync(accountId, null, endDate);
+
         decimal balance = 0;
         
         foreach (var transfer in transfers.OrderBy(t => t.TransferDate))

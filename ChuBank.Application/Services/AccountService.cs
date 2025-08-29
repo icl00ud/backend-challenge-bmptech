@@ -8,14 +8,20 @@ namespace ChuBank.Application.Services;
 public class AccountService
 {
     private readonly IAccountRepository _accountRepository;
+    private readonly ILogService _logService;
+    private readonly ICacheService _cacheService;
 
-    public AccountService(IAccountRepository accountRepository)
+    public AccountService(IAccountRepository accountRepository, ILogService logService, ICacheService cacheService)
     {
         _accountRepository = accountRepository;
+        _logService = logService;
+        _cacheService = cacheService;
     }
 
     public async Task<AccountResponse> CreateAccountAsync(CreateAccountRequest request)
     {
+        _logService.LogInfo($"Creating account for holder: {request.HolderName}");
+        
         var accountNumber = await GenerateUniqueAccountNumberAsync();
 
         var account = new Account
@@ -29,8 +35,10 @@ public class AccountService
         };
 
         var createdAccount = await _accountRepository.CreateAsync(account);
+        _logService.LogInfo($"Account created successfully: {accountNumber} for {request.HolderName}");
 
-        return new AccountResponse
+        var cacheKey = $"account_{createdAccount.Id}";
+        var accountResponse = new AccountResponse
         {
             Id = createdAccount.Id,
             AccountNumber = createdAccount.AccountNumber,
@@ -39,16 +47,29 @@ public class AccountService
             CreatedAt = createdAccount.CreatedAt,
             IsActive = createdAccount.IsActive
         };
+        
+        await _cacheService.SetAsync(cacheKey, accountResponse, TimeSpan.FromMinutes(30));
+        
+        return accountResponse;
     }
 
     public async Task<AccountResponse?> GetAccountByIdAsync(Guid id)
     {
+        var cacheKey = $"account_{id}";
+        var cachedAccount = await _cacheService.GetAsync<AccountResponse>(cacheKey);
+        
+        if (cachedAccount != null)
+        {
+            _logService.LogInfo($"Account retrieved from cache: {id}");
+            return cachedAccount;
+        }
+
         var account = await _accountRepository.GetByIdAsync(id);
         
         if (account == null)
             return null;
 
-        return new AccountResponse
+        var accountResponse = new AccountResponse
         {
             Id = account.Id,
             AccountNumber = account.AccountNumber,
@@ -57,6 +78,11 @@ public class AccountService
             CreatedAt = account.CreatedAt,
             IsActive = account.IsActive
         };
+
+        await _cacheService.SetAsync(cacheKey, accountResponse, TimeSpan.FromMinutes(15));
+        _logService.LogInfo($"Account retrieved from database and cached: {id}");
+        
+        return accountResponse;
     }
 
     public async Task<IEnumerable<AccountResponse>> GetAllAccountsAsync()
