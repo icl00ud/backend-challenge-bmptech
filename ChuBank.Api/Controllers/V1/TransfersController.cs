@@ -22,10 +22,10 @@ public class TransfersController : ControllerBase
     }
 
     /// <summary>
-    /// Realizar uma transferência entre contas
+    /// Make a transfer between accounts
     /// </summary>
-    /// <param name="request">Dados da transferência</param>
-    /// <returns>Dados da transferência realizada</returns>
+    /// <param name="request">Transfer data</param>
+    /// <returns>Data of the transfer performed</returns>
     [HttpPost]
     public async Task<IActionResult> CreateTransfer([FromBody] CreateTransferRequest request)
     {
@@ -44,7 +44,7 @@ public class TransfersController : ControllerBase
         }
             catch (Exception)
             {
-            return StatusCode(500, new { message = "Erro interno do servidor" });
+            return StatusCode(500, new { message = "Internal server error" });
         }
     }
 }

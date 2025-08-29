@@ -18,12 +18,12 @@ public class StatementsController : ControllerBase
     }
 
     /// <summary>
-    /// Gerar extrato de uma conta por período
+    /// Generate statement for an account by period
     /// </summary>
-    /// <param name="accountId">ID da conta</param>
-    /// <param name="startDate">Data de início do período</param>
-    /// <param name="endDate">Data de fim do período</param>
-    /// <returns>Extrato da conta no período especificado</returns>
+    /// <param name="accountId">Account ID</param>
+    /// <param name="startDate">Period start date</param>
+    /// <param name="endDate">Period end date</param>
+    /// <returns>Account statement in the specified period</returns>
     [HttpGet]
     public async Task<IActionResult> GetStatement(
         [FromQuery] Guid accountId,
@@ -31,10 +31,10 @@ public class StatementsController : ControllerBase
         [FromQuery] DateTime endDate)
     {
         if (startDate > endDate)
-            return BadRequest(new { message = "Data de início deve ser anterior à data de fim" });
+            return BadRequest(new { message = "Start date must be before end date" });
 
         if (endDate > DateTime.Today)
-            return BadRequest(new { message = "Data de fim não pode ser no futuro" });
+            return BadRequest(new { message = "End date cannot be in the future" });
 
         try
         {
@@ -47,7 +47,7 @@ public class StatementsController : ControllerBase
         }
             catch (Exception)
             {
-            return StatusCode(500, new { message = "Erro interno do servidor" });
+            return StatusCode(500, new { message = "Internal server error" });
         }
     }
 }

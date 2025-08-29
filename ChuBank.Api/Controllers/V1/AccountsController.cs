@@ -21,10 +21,10 @@ public class AccountsController : ControllerBase
     }
 
     /// <summary>
-    /// Cadastrar uma nova conta
+    /// Register a new account
     /// </summary>
-    /// <param name="request">Dados da conta a ser criada</param>
-    /// <returns>Dados da conta criada</returns>
+    /// <param name="request">Account data to be created</param>
+    /// <returns>Created account data</returns>
     [HttpPost]
     [AllowAnonymous]
     public async Task<IActionResult> CreateAccount([FromBody] CreateAccountRequest request)
@@ -45,10 +45,10 @@ public class AccountsController : ControllerBase
     }
 
     /// <summary>
-    /// Obter dados de uma conta por ID
+    /// Get account data by ID
     /// </summary>
-    /// <param name="id">ID da conta</param>
-    /// <returns>Dados da conta</returns>
+    /// <param name="id">Account ID</param>
+    /// <returns>Account data</returns>
     [HttpGet("{id}")]
     [Authorize]
     public async Task<IActionResult> GetAccount(Guid id)
@@ -56,15 +56,15 @@ public class AccountsController : ControllerBase
         var account = await _accountService.GetAccountByIdAsync(id);
         
         if (account == null)
-            return NotFound(new { message = "Conta não encontrada" });
+            return NotFound(new { message = "Account not found" });
 
         return Ok(account);
     }
 
     /// <summary>
-    /// Obter todas as contas
+    /// Get all accounts
     /// </summary>
-    /// <returns>Lista de todas as contas</returns>
+    /// <returns>List of all accounts</returns>
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetAllAccounts()
