@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using ChuBank.Application.Services;
+using ChuBank.Application.Interfaces;
 
 namespace ChuBank.Api.Controllers.V1;
 
@@ -10,9 +10,9 @@ namespace ChuBank.Api.Controllers.V1;
 [Authorize]
 public class StatementsController : ControllerBase
 {
-    private readonly StatementService _statementService;
+    private readonly IStatementService _statementService;
 
-    public StatementsController(StatementService statementService)
+    public StatementsController(IStatementService statementService)
     {
         _statementService = statementService;
     }

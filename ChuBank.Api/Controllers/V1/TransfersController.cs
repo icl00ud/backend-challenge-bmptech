@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using ChuBank.Application.Services;
+using ChuBank.Application.Interfaces;
 using ChuBank.Application.DTOs.Requests;
 using FluentValidation;
 
@@ -12,10 +12,10 @@ namespace ChuBank.Api.Controllers.V1;
 [Authorize]
 public class TransfersController : ControllerBase
 {
-    private readonly TransferService _transferService;
+    private readonly ITransferService _transferService;
     private readonly IValidator<CreateTransferRequest> _validator;
 
-    public TransfersController(TransferService transferService, IValidator<CreateTransferRequest> validator)
+    public TransfersController(ITransferService transferService, IValidator<CreateTransferRequest> validator)
     {
         _transferService = transferService;
         _validator = validator;

@@ -11,6 +11,7 @@ using ChuBank.Infrastructure.Repositories;
 using ChuBank.Infrastructure.Services;
 using ChuBank.Domain.Interfaces;
 using ChuBank.Application.Services;
+using ChuBank.Application.Interfaces;
 using ChuBank.Application.DTOs.Requests;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,9 +40,9 @@ builder.Services.AddSingleton<ILogService, LogService>();
 
 builder.Services.AddHostedService<HolidayCacheWarmupService>();
 
-builder.Services.AddScoped<AccountService>();
-builder.Services.AddScoped<TransferService>();
-builder.Services.AddScoped<StatementService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<ITransferService, TransferService>();
+builder.Services.AddScoped<IStatementService, StatementService>();
 
 builder.Services.AddHttpClient<IHolidayService, HolidayService>();
 
