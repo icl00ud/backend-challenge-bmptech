@@ -1,10 +1,11 @@
 using ChuBank.Application.DTOs.Responses;
+using ChuBank.Application.Interfaces;
 using ChuBank.Domain.Entities;
 using ChuBank.Domain.Interfaces;
 
 namespace ChuBank.Application.Services;
 
-public class StatementService
+public class StatementService : IStatementService
 {
     private readonly IStatementRepository _statementRepository;
     private readonly ITransferRepository _transferRepository;

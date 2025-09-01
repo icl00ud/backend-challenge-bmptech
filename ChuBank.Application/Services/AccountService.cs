@@ -1,11 +1,12 @@
 using ChuBank.Application.DTOs.Requests;
 using ChuBank.Application.DTOs.Responses;
+using ChuBank.Application.Interfaces;
 using ChuBank.Domain.Entities;
 using ChuBank.Domain.Interfaces;
 
 namespace ChuBank.Application.Services;
 
-public class AccountService
+public class AccountService : IAccountService
 {
     private readonly IAccountRepository _accountRepository;
     private readonly ILogService _logService;

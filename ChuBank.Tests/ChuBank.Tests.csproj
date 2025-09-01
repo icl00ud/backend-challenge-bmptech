@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.22" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.22" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="Moq" Version="4.20.69" />
@@ -25,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ChuBank.Api\ChuBank.Api.csproj" />
     <ProjectReference Include="..\ChuBank.Application\ChuBank.Application.csproj" />
     <ProjectReference Include="..\ChuBank.Domain\ChuBank.Domain.csproj" />
     <ProjectReference Include="..\ChuBank.Infrastructure\ChuBank.Infrastructure.csproj" />

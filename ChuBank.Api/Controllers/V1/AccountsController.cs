@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using ChuBank.Application.Services;
+using ChuBank.Application.Interfaces;
 using ChuBank.Application.DTOs.Requests;
 using FluentValidation;
 
@@ -11,10 +11,10 @@ namespace ChuBank.Api.Controllers.V1;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class AccountsController : ControllerBase
 {
-    private readonly AccountService _accountService;
+    private readonly IAccountService _accountService;
     private readonly IValidator<CreateAccountRequest> _validator;
 
-    public AccountsController(AccountService accountService, IValidator<CreateAccountRequest> validator)
+    public AccountsController(IAccountService accountService, IValidator<CreateAccountRequest> validator)
     {
         _accountService = accountService;
         _validator = validator;
