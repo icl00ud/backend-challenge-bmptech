@@ -16,7 +16,7 @@ docker-compose up -d
 
 ## Testando a API
 
-- **Swagger**: http://localhost:8080/swagger
+- **Swagger**: http://localhost:8080/swagger, não esqueça de colocar 'Bearer' antes do token
 - **Collection Insomnia**: Importe o arquivo `ChuBank-API-Collection.json`
 
 ### Autenticação
@@ -28,8 +28,3 @@ Use `/api/v1/auth/token` com username/password para obter o JWT token.I
 ```bash
 docker-compose up -d
 ```
-
-## � Testando a API
-
-- **Swagger**: http://localhost:8080/swagger, não esqueça de colocar 'Bearer' antes do token
-- **Collection Insomnia**: Importe o arquivo `ChuBank-API-Collection.json` no Insomnia
